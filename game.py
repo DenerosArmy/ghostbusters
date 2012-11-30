@@ -1,8 +1,10 @@
-from threading import Thread
-from Queue import Queue, Empty
-import time
-from utils import *
 import json
+from math import sin, cos, tan, atan, degrees, radians
+from Queue import Queue, Empty
+from threading import Thread
+import time
+
+from utils import *
 import distribution
 
 class GameState(object):
@@ -11,29 +13,39 @@ class GameState(object):
                  x_dir=(37.484315,-122.147958),
                  y_dir=(37.484911,-122.147929)):
         self.players = []
-        self.probability_cloud = {}
-        self.add_player("Player1")
+        self.player_cloud = {}
         self.ghost_cloud = {}
+        self.add_player("Player1")
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
-        self.receiving = False
+
+        self.origin = origin
+        #rotate a geo angle CW to get simple
+        self.geo_to_simp_angle = degrees(atan((y_dir[1]-origin[1])/(y_dir[0]-origin[0])))
+        #rotate a simple angle CW to get geo
+        self.simp_to_geo_angle = 360 - self.geo_to_simp_angle
         self.simp_to_geo = transform_mtx(width, height, origin, x_dir, y_dir)
         self.geo_to_simp = inverse(self.simp_to_geo)
+
+        self.receiving = False
         self.queue = Queue()
+
         self.thread = Thread(target=self.run_thread)
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
 
     def pt_to_geo(self, pt):
         apply_transform_to_point(self.simp_to_geo, pt)
+        return pt
 
     def pt_to_simp(self, pt):
         apply_transform_to_point(self.geo_to_simp, pt)
-
-    def angle_to_geo(self, angle):
-        return 0.0
+        return pt
 
     def angle_to_simp(self, angle):
-        return 0.0
+        return (angle - self.geo_to_simp_angle) % 360
+
+    def angle_to_geo(self, angle):
+        return (angle + self.geo_to_simp_angle) % 360
 
     def add_player(self, name):
         self.players.append(name)
