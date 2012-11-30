@@ -56,3 +56,17 @@ class Distribution(object):
                 logging.error("Cannot update probability distribution due to impossible observations")
             else:
                 self.particles = new_particles
+
+    def centroid(self):
+        sum_x = 0.0
+        sum_y = 0.0
+        for x, y in self.particles:
+            sum_x += x
+            sum_y += y
+        sum_x /= len(self.particles)
+        sum_y /= len(self.particles)
+        return sum_x, sum_y
+
+    def sample(self):
+        return random.choice(self.particles)
+

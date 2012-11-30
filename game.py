@@ -4,6 +4,8 @@ import time
 from utils import *
 import json
 import distribution
+import math
+import random
 
 class GameState(object):
     def __init__(self, width, height,
@@ -11,7 +13,7 @@ class GameState(object):
                  x_dir=(37.484315,-122.147958),
                  y_dir=(37.484911,-122.147929)):
         self.players = []
-        self.probability_cloud = {}
+        self.player_cloud = {}
         self.add_player("Player1")
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
@@ -22,6 +24,55 @@ class GameState(object):
         self.thread = Thread(target=self.run_thread)
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
+
+    def player_observation(self, particle, data):
+        x, y = particle
+        ax, ay = data[0], data[1]
+        distance_squared = (x-ax)**2 + (y-ay)**2
+        sigma = 0.9 # TODO: better parameter that reflects actual GPS accuracy
+        probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
+        return probability
+
+    def player_transition(self, particle):
+        x, y = None, None
+        travel_distance = 0.05 # TODO: better parameter that reflects reality and time
+        while not distribution.is_valid_location((x, y)):
+            x = particle[0] + (random.random() - 0.5) * travel_distance * 2.0
+            y = particle[1] + (random.random() - 0.5) * travel_distance * 2.0
+        return x, y
+
+    def player_ghost_angles(self):
+        ghost_dist = self.ghost_cloud.values()[0]
+        player_dist = self.player_cloud.values()[0]
+        upsampling_factor = 2
+        angles = []
+        for ghost_loc in ghost_dist.particles:
+            for _ in range(upsampling_factor):
+                player_loc = player_dist.sample()
+                dx = ghost_loc[0] - player_loc[0]
+                dy = ghost_loc[0] - player_loc[0]
+                angle = math.degrees(math.atan2(dy, dx))
+                if angle < 0.0:
+                    angle += 360.0
+                angles.append(angle)
+        return angles
+
+    def player_ghost_angles_geo(self):
+        angles = map(self.angle_to_geo, self.player_ghost_angles())
+        res = [0, 0, 0, 0]
+        for angle in angles:
+            assert angle >= 0, "Internal error: negative angles"
+            if angle < 90:
+                res[0] += 1
+            elif angle < 180:
+                res[1] += 1
+            elif angle < 270:
+                res[2] += 1
+            else:
+                assert angle < 360, "Internal error: angle greater than 360 degrees"
+                res[3] += 1
+        res = [x*1.0/len(angles) for x in res]
+        return res
 
     def pt_to_geo(self, pt):
         apply_transform_to_point(self.simp_to_geo, pt)
@@ -37,7 +88,7 @@ class GameState(object):
 
     def add_player(self, name):
         self.players.append(name)
-        self.player_cloud[name] = distribution.Distribution()
+        self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=self.player_transition)
 
     def push(self, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
@@ -51,13 +102,15 @@ class GameState(object):
             self.process(timestamp, msg, callback)
 
     def process(self, timestamp, msg, callback):
-        contents = json.loads(msg)
-        dist = self.probability_cloud.values()[0]
-        dist.update(contents["args"])
         print "Received message", msg
+        contents = json.loads(msg)
+        dist = self.player_cloud.values()[0]
+        dist.tick()
+        dist.update(contents["args"])
+        print "Centroid", dist.centroid()
 
         if contents["action"] == "compass":
-            args = [0.25, 0.25, 0.25, 0.25]
+            args = self.player_ghost_angles_geo()
         else:
             args = content["args"][0], content["args"][1]
         res = {"action": contents["action"], "args": args}
