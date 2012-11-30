@@ -34,9 +34,12 @@ class GameState(object):
         self.thread.start()
         self.time_since_tick = time.time()
 
+    def measure_ghost(self, data):
+        return data[0], data[1]
+
     def player_observation(self, particle, data):
         x, y = particle
-        ax, ay = self.pt_to_simp([data[0], data[1]])
+        ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
         sigma = 0.9 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
@@ -49,6 +52,9 @@ class GameState(object):
             x = particle[0] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
             y = particle[1] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
         return x, y
+
+    def ghost_observation(self, particle, data):
+        player_dist, player_vect, saw_ghost = data
 
     def player_ghost_angles(self):
         ghost_dist = self.ghost_cloud.values()[0]
@@ -126,13 +132,25 @@ class GameState(object):
     def process(self, timestamp, msg, callback):
         print "Received message", msg
         contents = json.loads(msg)
+        contents["args"] = eval(contents["args"])
+        player_data = contents["args"][:]
+        player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
         dist = self.player_cloud.values()[0]
+<<<<<<< HEAD
         dist.update(contents["args"])
+=======
+        dist.tick()
+        dist.update(player_data)
+>>>>>>> 6daafea4c37e204c2f91087609b366e0ee8ebf32
         print "Centroid", dist.centroid()
 
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo()
         else:
-            args = contents["args"][0], contents["args"][1]
+            ghost_location = self.measure_ghost(player_data)
+            if ghost_location is not None:
+                args = self.pt_to_geo(list(ghost_location))
+            else:
+                args = None
         res = {"action": contents["action"], "args": args}
         callback(json.dumps(res))
