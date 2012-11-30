@@ -17,6 +17,7 @@ class GameState(object):
         self.player_cloud = {}
         self.player_angles = {}
         self.player_connections = {}
+        self.player_speeds = {}
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
@@ -65,7 +66,8 @@ class GameState(object):
     def player_transition(self, name, particle):
         x, y = None, None
         angle = self.player_angles[name]
-        travel_distance = 0.1 # TODO: better parameter that reflects reality and time
+        speed = self.player_speeds[name]
+        travel_distance = speed * 4 # TODO: better parameter that reflects reality and time
         random_distance = 0.05
         while not distribution.is_valid_location((x, y)):
             distance = random.uniform(0.0, travel_distance)
@@ -162,6 +164,7 @@ class GameState(object):
         self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
         self.player_angles[name] = 0.0
         self.player_connections[name] = connection
+        self.player_speeds[name] = 0.0
 
     def push(self, player, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
@@ -193,10 +196,10 @@ class GameState(object):
                     self.time_since_tick = time.time()
 
     def plot_particles(self, title="Untitled"):
-        while len(self.player_cloud) < 2:
+        while len(self.player_cloud) < 1:
             pass
         player0_dist = self.player_cloud.values()[0]
-        player1_dist = self.player_cloud.values()[1]
+        #player1_dist = self.player_cloud.values()[1]
         ghost_dist = self.ghost_cloud.values()[0]
         try:
             print "plotting"
@@ -211,7 +214,7 @@ class GameState(object):
                 time.sleep(1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
                 plt.plot([p[0] for p in player0_dist.particles], [p[1] for p in player0_dist.particles], 'bo')
-                plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
+                #plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
 
                 plt.axis([0, 1, 0, 1])
                 plt.savefig("figure_.png")
@@ -231,6 +234,8 @@ class GameState(object):
         print "Centroid", dist.centroid()
 
         self.player_angles[player] = player_data[3]
+        if len(player_data) > 4:
+            self.player_speeds[player] = player_data[4]
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo(player)
         else:
