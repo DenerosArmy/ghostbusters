@@ -12,6 +12,7 @@ class GameState(object):
                  y_dir=(37.484911,-122.147929)):
         self.players = []
         self.probability_cloud = {}
+        self.add_player("Player1")
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
         self.ghost_cloud["Ghost1"].initialize_randomly()
@@ -28,6 +29,7 @@ class GameState(object):
         self.probability_cloud[name] = distribution.Distribution()
 
     def push(self, timestamp, msg, callback):
+        #self.process(timestamp, msg, callback)
         self.queue.put((timestamp, msg, callback))
 
     def run_thread(self):
@@ -35,15 +37,17 @@ class GameState(object):
             timestamp, msg, callback = self.queue.get()
             if time.time() - timestamp > 1.0:
                 continue # Ignore out-of-date data
+            self.process(timestamp, msg, callback)
 
-            contents = json.loads(msg)
-            dist = self.probability_cloud.values()[0]
-            dist.update(contents["args"])
-            print "Received message", msg
+    def process(self, timestamp, msg, callback):
+        contents = json.loads(msg)
+        dist = self.probability_cloud.values()[0]
+        dist.update(contents["args"])
+        print "Received message", msg
 
-            if contents["action"] == "compass":
-                args = [0.25, 0.25, 0.25, 0.25]
-            else:
-                args = content["args"][0], content["args"][1]
-            res = {"action": contents["action"], "args": args}
-            callback(json.dumps(res))
+        if contents["action"] == "compass":
+            args = [0.25, 0.25, 0.25, 0.25]
+        else:
+            args = content["args"][0], content["args"][1]
+        res = {"action": contents["action"], "args": args}
+        callback(json.dumps(res))
