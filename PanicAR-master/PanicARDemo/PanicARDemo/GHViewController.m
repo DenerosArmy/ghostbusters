@@ -224,9 +224,9 @@
     prevAcce = acce;
     prevVelocity = velocity;
     
-   // NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-   // [prefs setFloat:velocity  forKey:@"velocity"];
-    //[prefs synchronize];
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+   [prefs setFloat:velocity  forKey:@"velocity"];
+ [prefs synchronize];
 }
 
 - (void)didUpdateHeading {
@@ -438,7 +438,6 @@
         [alert show];
         [prefs setFloat:[[valuescomp objectAtIndex:0] floatValue] forKey:@"ghostlat"];
         [prefs setFloat:[[valuescomp objectAtIndex:1] floatValue] forKey:@"ghostlon"];
-        [prefs setFloat:[[valuescomp objectAtIndex:2] floatValue] forKey:@"ghostheading"];
         [prefs setValue:@"someoneghost" forKey:@"ghostsource"];
         [[NSUserDefaults standardUserDefaults] synchronize];
         [self leave];

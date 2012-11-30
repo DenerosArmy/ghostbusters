@@ -425,7 +425,7 @@ static NSTimer *myTimer = nil;
     
     [[PARController sharedARController] addObject:newPoi];
     // second: add the poi label to the PARController using the addObject method
-	[[PARController sharedARController] addObject:newPoiLabel];
+	//[[PARController sharedARController] addObject:newPoiLabel];
 
 
 }

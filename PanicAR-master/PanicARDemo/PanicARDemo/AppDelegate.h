@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-
+void uncaughtExceptionHandler(NSException *exception);
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;

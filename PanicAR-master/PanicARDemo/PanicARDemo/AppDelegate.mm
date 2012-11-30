@@ -12,6 +12,11 @@
 #import "AboutViewController.h"
 #import "GHViewController.h"
 
+void uncaughtExceptionHandler(NSException *exception) {
+    NSLog(@"CRASH: %@", exception);
+    NSLog(@"Stack Trace: %@", [exception callStackSymbols]);
+    // Internal error reporting
+}
 @implementation AppDelegate
 
 @synthesize window = _window;
@@ -24,7 +29,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    
+     NSSetUncaughtExceptionHandler(&uncaughtExceptionHandler);
     
     return YES;
 }
