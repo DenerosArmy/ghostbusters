@@ -15,6 +15,7 @@ class GameState(object):
                  x_dir=(37.484315,-122.147958),
                  y_dir=(37.484911,-122.147929)):
         self.player_cloud = {}
+        self.player_angles = {}
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
@@ -56,16 +57,21 @@ class GameState(object):
         x, y = particle
         ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
-        sigma = 0.1 # TODO: better parameter that reflects actual GPS accuracy
+        sigma = 0.7 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
         return probability
 
-    def player_transition(self, particle):
+    def player_transition(self, name, particle):
         x, y = None, None
-        travel_distance = 0.05 # TODO: better parameter that reflects reality and time
+        angle = self.player_angles[name]
+        travel_distance = 0.1 # TODO: better parameter that reflects reality and time
+        random_distance = 0.05
         while not distribution.is_valid_location((x, y)):
-            x = particle[0] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
-            y = particle[1] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
+            distance = random.uniform(0.0, travel_distance)
+            dx = distance * math.cos(math.radians(angle))
+            dy = distance * math.sin(math.radians(angle))
+            x = particle[0] + dx + random.uniform(-random_distance, random_distance)
+            y = particle[1] + dy + random.uniform(-random_distance, random_distance)
         return x, y
 
     def ghost_observation(self, particle, data):
@@ -141,7 +147,8 @@ class GameState(object):
         return (angle + self.geo_to_simp_angle) % 360
 
     def add_player(self, name):
-        self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=self.player_transition)
+        self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
+        self.player_angles[name] = 0.0
 
     def push(self, player, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
@@ -210,6 +217,7 @@ class GameState(object):
         dist.update(player_data)
         print "Centroid", dist.centroid()
 
+        self.player_angles[player] = player_data[3]
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo(player)
         else:
