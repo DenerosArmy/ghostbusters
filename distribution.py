@@ -2,7 +2,8 @@ import random
 import logging
 
 def is_valid_location(loc):
-    return True # placeholder
+    x, y = loc
+    return 0.0 <= x < 1.0 and 0.0 <= y < 1.0
 def get_random_location():
     return random.random(), random.random()
 
@@ -19,7 +20,7 @@ class Distribution(object):
         self.initialization_function = initialization_function
         self.transition_function = transition_function
         self.emission_function = emission_function
-        self.initialize_randomly()
+        self.initialization_function()
 
     def resample(self, particles, weights, num_particles=None):
         if num_particles is None:
@@ -44,11 +45,13 @@ class Distribution(object):
     def tick(self):
         self.particles = map(self.transition_function, self.particles)
 
-    def update(self, data):
-        self.particles = self.resample(self.particles, map(lambda particle: self.emission_function(particle, data), self.particles))
+    def update(self, data, emission_function=None):
+        if emission_function is None:
+            emission_function = self.emission_function
+        self.particles = self.resample(self.particles, map(lambda particle: emission_function(particle, data), self.particles))
         if self.particles is None:
             self.initialize_randomly()
-            new_particles = self.resample(self.particles, map(lambda particle: self.emission_function(particle, data), self.particles))
+            new_particles = self.resample(self.particles, map(lambda particle: emission_function(particle, data), self.particles))
             if new_particles is None:
                 logging.error("Cannot update probability distribution due to impossible observations")
             else:
