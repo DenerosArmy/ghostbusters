@@ -12,7 +12,7 @@ def time_update(particle):
     """Randomly move a particle: corresponds to time updates of ghosts"""
     x, y = None, None
     travel_distance = 0.05 # TODO: better parameter that reflects reality and time
-    while not distribution.is_valid_location((x, y)):
+    while not is_valid_location((x, y)):
         x = particle[0] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
         y = particle[1] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
     return x, y
