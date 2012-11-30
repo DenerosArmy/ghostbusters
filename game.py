@@ -55,6 +55,22 @@ class GameState(object):
         else:
             return gx, gy
 
+    def refine_measurement(self, location, data):
+        gx, gy = ghost_dist.sample()
+        px, py = data[0:2]
+
+        dx = gx - px
+        dy = gy - py
+
+        length = math.sqrt(dx**2 + dy**2)
+        scaling_factor = 1.0/length
+
+        x = px + dx*scaling_factor
+        y = py + dy*scaling_factor
+
+        return self.pt_to_geo([x, y])
+
+
     def player_observation(self, particle, data):
         x, y = particle
         ax, ay = data[0:2]
@@ -249,7 +265,7 @@ class GameState(object):
             print "Ghost centroid after", ghost_dist.centroid()
             print "Ghost angles after:", self.player_ghost_angles_geo(player)
             if ghost_location is not None:
-                args = self.pt_to_geo(list(ghost_location))
+                args = self.refine_measurement(ghost_location, player_data)
                 for player_num, conn in self.player_connections.items():
                     if player_num != player:
                         conn.send(json.dumps({"action": "notify", "args": args}))
