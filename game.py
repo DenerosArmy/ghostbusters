@@ -34,7 +34,7 @@ class GameState(object):
 
     def player_observation(self, particle, data):
         x, y = particle
-        ax, ay = data[0], data[1]
+        ax, ay = self.pt_to_simp([data[0], data[1]])
         distance_squared = (x-ax)**2 + (y-ay)**2
         sigma = 0.9 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
