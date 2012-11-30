@@ -180,17 +180,21 @@ class GameState(object):
         ghost_dist = self.ghost_cloud.values()[0]
         try:
             print "plotting"
+            import matplotlib
+            matplotlib.use('Agg')
             import matplotlib.pyplot as plt
+            import shutil
             plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
-            plt.show(block=False)
+            plt.show()#block=False)
             while True:
                 plt.clf()
-                time.sleep(0.1)
+                time.sleep(1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
                 plt.plot([p[0] for p in player_dist.particles], [p[1] for p in player_dist.particles], 'bo')
 
                 plt.axis([0, 1, 0, 1])
-                plt.draw()
+                plt.savefig("figure_.png")
+                shutil.move("figure_.png", "figure.png")
         except ImportError:
             pass
 
