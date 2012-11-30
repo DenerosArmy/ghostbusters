@@ -18,7 +18,7 @@ class GameState(object):
         self.player_cloud = {}
         self.ghost_cloud = {}
         self.add_player("Player1")
-        self.ghost_cloud["Ghost1"] = distribution.Distribution()
+        self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
         #rotate a geo angle CW this many degrees to get simple
         self.geo_to_simp_angle = degrees(math.atan2((y_dir[1]-origin[1]),(y_dir[0]-origin[0])))
@@ -34,7 +34,21 @@ class GameState(object):
         self.thread.start()
 
     def measure_ghost(self, data):
-        return data[0], data[1]
+        angle_limit = 45.0
+        distance_limit = 1.0
+        ghost_dist = self.ghost_cloud.values()[0]
+        gx, gy = ghost_dist.sample()
+        px, py = data[0:2]
+        measured_angle = math.degrees(math.atan2(gy-py, gx-px))
+        if measured_angle < 0:
+            measured_angle += 360
+        phone_angle = data[3]
+        if angle_limit < abs(measured_angle - phone_angle) < 360.0-angle_limit:
+            return None
+        elif (gx-px)**2 + (gy-py)**2 > distance_limit**2:
+            return None
+        else:
+            return gx, gy
 
     def player_observation(self, particle, data):
         x, y = particle
@@ -53,7 +67,29 @@ class GameState(object):
         return x, y
 
     def ghost_observation(self, particle, data):
-        player_dist, player_vect, saw_ghost = data
+        angle_limit = 45.0
+        distance_limit = 1.0
+
+        gx, gy = particle
+        player_dist, player_vect, ghost_loc = data
+        player_angle = player_vect[3]
+        total = 0
+        samples = 10
+        for _ in range(samples):
+            px, py = player_dist.sample()
+            if (px - gx)**2 + (py-gy)**2 > distance_limit**2:
+                continue
+            measured_angle = math.degrees(math.atan2(gy-py, gx-px))
+            if measured_angle < 0:
+                measured_angle += 360
+            if angle_limit < abs(measured_angle - player_angle) < 360.0-angle_limit:
+                continue
+            total += 1
+        if ghost_loc is not None:
+            return float(total)/samples
+        else:
+            return 1.0 - float(total)/samples
+
 
     def player_ghost_angles(self):
         ghost_dist = self.ghost_cloud.values()[0]
@@ -116,7 +152,7 @@ class GameState(object):
 
     def run_thread(self):
         while True:
-            if not snap_queue.empty():
+            if not self.snap_queue.empty():
                 timestamp, msg, callback = self.snap_queue.get()
             else:
                 timestamp, msg, callback = self.compass_queue.get()
@@ -130,6 +166,7 @@ class GameState(object):
         contents["args"] = eval(contents["args"])
         player_data = contents["args"][:]
         player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
+        player_data[3] = self.angle_to_simp(player_data[3])
         dist = self.player_cloud.values()[0]
         dist.tick()
         dist.update(player_data)
@@ -138,7 +175,14 @@ class GameState(object):
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo()
         else:
+            ghost_dist = self.ghost_cloud.values()[0]
+            print "Ghost centroid before", ghost_dist.centroid()
+            print "Ghost angles before:", self.player_ghost_angles_geo()
             ghost_location = self.measure_ghost(player_data)
+            data = dist, player_data, ghost_location
+            ghost_dist.update(data)
+            print "Ghost centroid after", ghost_dist.centroid()
+            print "Ghost angles after:", self.player_ghost_angles_geo()
             if ghost_location is not None:
                 args = self.pt_to_geo(list(ghost_location))
             else:
