@@ -157,7 +157,7 @@ class GameState(object):
             if not self.snap_queue.empty():
                 player, timestamp, msg, callback = self.snap_queue.get()
                 if time.time() - timestamp < 1.0: # Ignore out-of-date data
-                    self.process(timestamp, msg, callback)
+                    self.process(player, timestamp, msg, callback)
             elif not self.compass_queue.empty():
                 player, timestamp, msg, callback = self.compass_queue.get()
                 if time.time() - timestamp < 1.0: # Ignore out-of-date data
