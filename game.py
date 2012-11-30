@@ -2,6 +2,7 @@ from math import *
 from threading import Thread
 from Queue import Queue, Empty
 import time
+from utils import *
 
 class GameState(object):
     def __init__(self, width, height,
@@ -27,8 +28,8 @@ class GameState(object):
 
     def run_thread(self):
         while True:
-            timestamp, msg, callback = self.queue.get(timeout=.1)
+            timestamp, msg, callback = self.queue.get()
             if time.time() - timestamp > 1.0:
                 continue # Ignore out-of-date data
             print "Received message", msg
-            callback()
+            callback("")
