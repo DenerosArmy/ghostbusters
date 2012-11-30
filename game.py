@@ -67,7 +67,7 @@ class GameState(object):
         angle = self.player_angles[name]
         speed = self.player_speeds[name]
         travel_distance = speed * 4 # TODO: better parameter that reflects reality and time
-        random_distance = 0.05
+        random_distance = 0.02
         while not distribution.is_valid_location((x, y)):
             distance = random.uniform(0.0, travel_distance)
             dx = distance * math.cos(math.radians(angle))
