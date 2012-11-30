@@ -116,18 +116,23 @@ class GameState(object):
             self.compass_queue.put((timestamp, msg, callback))
 
     def run_thread(self):
+        self.time_since_tick = time.time()
         while True:
             if not self.snap_queue.empty():
                 timestamp, msg, callback = self.snap_queue.get()
-            else:
+                if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                    self.process(timestamp, msg, callback)
+            elif not self.compass_queue.empty():
                 timestamp, msg, callback = self.compass_queue.get()
-            if time.time() - timestamp < 1.0: # Ignore out-of-date data
-                self.process(timestamp, msg, callback)
-            if time.time() - self.time_since_tick > 1.0:
-                # Tick the distribution every second
-                dist = self.player_cloud.values()[0]
-                dist.tick()
-                self.time_since_tick = time.time()
+                if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                    self.process(timestamp, msg, callback)
+            else:
+                if time.time() - self.time_since_tick > 1.0:
+                    # Tick the distribution every second
+                    print "tick"
+                    dist = self.player_cloud.values()[0]
+                    dist.tick()
+                    self.time_since_tick = time.time()
 
     def process(self, timestamp, msg, callback):
         print "Received message", msg
