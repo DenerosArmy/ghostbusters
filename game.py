@@ -14,10 +14,8 @@ class GameState(object):
                  origin=(37.484724,-122.148309),
                  x_dir=(37.484315,-122.147958),
                  y_dir=(37.484911,-122.147929)):
-        self.players = []
         self.player_cloud = {}
         self.ghost_cloud = {}
-        self.add_player("Player1")
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
         #rotate a geo angle CW this many degrees to get simple
@@ -143,39 +141,40 @@ class GameState(object):
         return (angle + self.geo_to_simp_angle) % 360
 
     def add_player(self, name):
-        self.players.append(name)
         self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=self.player_transition)
 
-    def push(self, timestamp, msg, callback):
+    def push(self, player, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
         contents = json.loads(msg)
         if contents["action"] == "snap":
-            self.snap_queue.put((timestamp, msg, callback))
+            self.snap_queue.put((player, timestamp, msg, callback))
         else:
-            self.compass_queue.put((timestamp, msg, callback))
+            self.compass_queue.put((player, timestamp, msg, callback))
 
     def run_thread(self):
         self.time_since_tick = time.time()
         while True:
             if not self.snap_queue.empty():
-                timestamp, msg, callback = self.snap_queue.get()
+                player, timestamp, msg, callback = self.snap_queue.get()
                 if time.time() - timestamp < 1.0: # Ignore out-of-date data
                     self.process(timestamp, msg, callback)
             elif not self.compass_queue.empty():
-                timestamp, msg, callback = self.compass_queue.get()
+                player, timestamp, msg, callback = self.compass_queue.get()
                 if time.time() - timestamp < 1.0: # Ignore out-of-date data
-                    self.process(timestamp, msg, callback)
+                    self.process(player, timestamp, msg, callback)
             else:
                 if time.time() - self.time_since_tick > 1.0:
                     # Tick the distribution every second
                     print "tick"
-                    dist = self.player_cloud.values()[0]
-                    dist.tick()
+                    for dist in self.player_cloud.values():
+                        dist.tick()
                     ghost_dist = self.ghost_cloud.values()[0]
                     ghost_dist.tick()
                     self.time_since_tick = time.time()
 
     def plot_particles(self, title="Untitled"):
+        while len(self.player_cloud) < 2:
+            pass
         player_dist = self.player_cloud.values()[0]
         ghost_dist = self.ghost_cloud.values()[0]
         try:
@@ -194,15 +193,14 @@ class GameState(object):
         except ImportError:
             pass
 
-
-    def process(self, timestamp, msg, callback):
+    def process(self, player, timestamp, msg, callback):
         print "Received message", msg
         contents = json.loads(msg)
         contents["args"] = eval(contents["args"])
         player_data = contents["args"][:]
         player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
         player_data[3] = self.angle_to_simp(player_data[3])
-        dist = self.player_cloud.values()[0]
+        dist = self.player_cloud[player]
         dist.update(player_data)
         print "Centroid", dist.centroid()
 

@@ -36,18 +36,25 @@ def parse_args():
 connections = set()
  
 class DataHandler(tornado.websocket.WebSocketHandler):
+    player_num = 0
     def open(self):
+        print "Adding player ", DataHandler.player_num
+        self.player = DataHandler.player_num
+        DataHandler.player_num += 1
         connections.add(self)
+        game_state.add_player(self.player)
         return None
 
-    def on_message(self, msg): 
-        game_state.push(time.time(),msg,self.send)
+    def on_message(self, msg):
+        game_state.push(self.player, time.time(), msg, self.send)
     
     def send(self,msg):
         if self in connections:
             self.write_message(msg) 
+
     def on_close(self):
         connections.remove(self)
+        del game_state.player_cloud[self.player]
 
 
 def main():
@@ -63,12 +70,11 @@ def main():
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
 
-
     application = tornado.web.Application([
-        (r"/data", DataHandler),
+        (r"/data0", DataHandler),
+        (r"/data1", DataHandler),
     ],
     )
-
 
     print "Listening on %s:%s" % (args.listen_interface, args.listen_port)
     application.listen(args.listen_port, args.listen_interface)
