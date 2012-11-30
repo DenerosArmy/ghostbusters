@@ -33,9 +33,9 @@ class GameState(object):
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
         self.time_since_tick = time.time()
-        #self.thread = Thread(target=self.plot_particles)
-        #self.thread.daemon = True
-        #self.thread.start()
+        self.plotthread = Thread(target=self.plot_particles)
+        self.plotthread.daemon = True
+        self.plotthread.start()
 
     def measure_ghost(self, data):
         angle_limit = 45.0
@@ -176,16 +176,23 @@ class GameState(object):
                     self.time_since_tick = time.time()
 
     def plot_particles(self, title="Untitled"):
+        player_dist = self.player_cloud.values()[0]
         ghost_dist = self.ghost_cloud.values()[0]
-        while True:
-            try:
-                print "plotting"
-                import matplotlib.pyplot as plt
+        try:
+            print "plotting"
+            import matplotlib.pyplot as plt
+            plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
+            plt.show(block=False)
+            while True:
+                plt.clf()
+                time.sleep(0.1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
+                plt.plot([p[0] for p in player_dist.particles], [p[1] for p in player_dist.particles], 'bo')
+
                 plt.axis([0, 1, 0, 1])
-                plt.show()
-            except ImportError:
-                pass
+                plt.draw()
+        except ImportError:
+            pass
 
 
     def process(self, timestamp, msg, callback):
