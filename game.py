@@ -168,6 +168,8 @@ class GameState(object):
                     print "tick"
                     dist = self.player_cloud.values()[0]
                     dist.tick()
+                    ghost_dist = self.ghost_cloud.values()[0]
+                    ghost_dist.tick()
                     self.time_since_tick = time.time()
 
     def process(self, timestamp, msg, callback):
