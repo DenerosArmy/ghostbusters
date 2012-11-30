@@ -16,6 +16,7 @@ class GameState(object):
                  y_dir=(37.484911,-122.147929)):
         self.player_cloud = {}
         self.player_angles = {}
+        self.player_connections = {}
         self.player_speeds = {}
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
@@ -159,9 +160,10 @@ class GameState(object):
             return None
         return (angle + self.geo_to_simp_angle) % 360
 
-    def add_player(self, name):
+    def add_player(self, name, connection):
         self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
         self.player_angles[name] = 0.0
+        self.player_connections[name] = connection
         self.player_speeds[name] = 0.0
 
     def push(self, player, timestamp, msg, callback):
@@ -248,6 +250,9 @@ class GameState(object):
             print "Ghost angles after:", self.player_ghost_angles_geo(player)
             if ghost_location is not None:
                 args = self.pt_to_geo(list(ghost_location))
+                for player_num, conn in self.player_connections.items():
+                    if player_num != player:
+                        conn.send(json.dumps({"action": "notify", "args": args}))
             else:
                 args = [0.0, 0.0]
         res = {"action": contents["action"], "args": args}

@@ -12,18 +12,18 @@ def connect():
 def compass(x=37.484724, y=-122.148309, acc=0.0, heading=108.79, vel=0.0):
     data = {"action": "compass", "args": str([x, y, acc, heading, vel])}
     ws0.send(json.dumps(data))
-    ws1.send(json.dumps(data))
+    # ws1.send(json.dumps(data))
 
 def ghost(x=37.484724, y=-122.148309, acc=0.0, heading=108.79, vel=0.0):
     data = {"action": "ghost", "args": str([x, y, acc, heading, vel])}
     ws0.send(json.dumps(data))
-    ws1.send(json.dumps(data))
+    # ws1.send(json.dumps(data))
 
 def test():
     connect()
     compass()
     print repr(ws0.recv())
-    print repr(ws1.recv())
+    # print repr(ws1.recv())
 
 def test_coord():
     state = GameState(1,1)
