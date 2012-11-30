@@ -16,6 +16,7 @@ class GameState(object):
                  y_dir=(37.484911,-122.147929)):
         self.player_cloud = {}
         self.player_angles = {}
+        self.player_speeds = {}
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
@@ -64,7 +65,8 @@ class GameState(object):
     def player_transition(self, name, particle):
         x, y = None, None
         angle = self.player_angles[name]
-        travel_distance = 0.1 # TODO: better parameter that reflects reality and time
+        speed = self.player_speeds[name]
+        travel_distance = speed * 4 # TODO: better parameter that reflects reality and time
         random_distance = 0.05
         while not distribution.is_valid_location((x, y)):
             distance = random.uniform(0.0, travel_distance)
@@ -149,6 +151,7 @@ class GameState(object):
     def add_player(self, name):
         self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
         self.player_angles[name] = 0.0
+        self.player_speeds[name] = 0.0
 
     def push(self, player, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
@@ -218,6 +221,7 @@ class GameState(object):
         print "Centroid", dist.centroid()
 
         self.player_angles[player] = player_data[3]
+        self.player_speeds[player] = player_data[4]
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo(player)
         else:

@@ -9,13 +9,13 @@ def connect():
     ws0 = create_connection("ws://0.0.0.0:9000/data0")
     ws1 = create_connection("ws://0.0.0.0:9000/data1")
 
-def compass(x=37.484724, y=-122.148309, acc=0.0, heading=108.79):
-    data = {"action": "compass", "args": str([x, y, acc, heading])}
+def compass(x=37.484724, y=-122.148309, acc=0.0, heading=108.79, vel=0.0):
+    data = {"action": "compass", "args": str([x, y, acc, heading, vel])}
     ws0.send(json.dumps(data))
     ws1.send(json.dumps(data))
 
-def ghost(x=37.484724, y=-122.148309, acc=0.0, heading=108.79):
-    data = {"action": "ghost", "args": str([x, y, acc, heading])}
+def ghost(x=37.484724, y=-122.148309, acc=0.0, heading=108.79, vel=0.0):
+    data = {"action": "ghost", "args": str([x, y, acc, heading, vel])}
     ws0.send(json.dumps(data))
     ws1.send(json.dumps(data))
 

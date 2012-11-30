@@ -52,7 +52,6 @@ class DataHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         connections.remove(self)
-        del game_state.player_cloud[self.player]
 
 class DataHandler0(DataHandler):
     player_num = 0
