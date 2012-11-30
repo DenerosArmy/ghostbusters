@@ -57,7 +57,7 @@ class GameState(object):
             for _ in range(upsampling_factor):
                 player_loc = player_dist.sample()
                 dx = ghost_loc[0] - player_loc[0]
-                dy = ghost_loc[0] - player_loc[0]
+                dy = ghost_loc[1] - player_loc[1]
                 angle = math.degrees(math.atan2(dy, dx))
                 if angle < 0.0:
                     angle += 360.0
