@@ -14,7 +14,7 @@ class GameState(object):
                  origin=(37.484724,-122.148309),
                  x_dir=(37.484315,-122.147958),
                  y_dir=(37.484911,-122.147929)):
-        self.player _cloud = {}
+        self.player_cloud = {}
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution(emission_function=self.ghost_observation)
 
