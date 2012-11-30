@@ -32,6 +32,7 @@ class GameState(object):
         self.thread = Thread(target=self.run_thread)
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
+        self.time_since_tick = time.time()
 
     def player_observation(self, particle, data):
         x, y = particle
@@ -45,8 +46,8 @@ class GameState(object):
         x, y = None, None
         travel_distance = 0.05 # TODO: better parameter that reflects reality and time
         while not distribution.is_valid_location((x, y)):
-            x = particle[0] + (random.random() - 0.5) * travel_distance * 2.0
-            y = particle[1] + (random.random() - 0.5) * travel_distance * 2.0
+            x = particle[0] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
+            y = particle[1] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
         return x, y
 
     def player_ghost_angles(self):
@@ -110,19 +111,22 @@ class GameState(object):
 
     def run_thread(self):
         while True:
-            if not snap_queue.empty():
+            if not self.snap_queue.empty():
                 timestamp, msg, callback = self.snap_queue.get()
             else:
                 timestamp, msg, callback = self.compass_queue.get()
-            if time.time() - timestamp > 1.0:
-                continue # Ignore out-of-date data
-            self.process(timestamp, msg, callback)
+            if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                self.process(timestamp, msg, callback)
+            if time.time() - self.time_since_tick > 1.0:
+                # Tick the distribution every second
+                dist = self.player_cloud.values()[0]
+                dist.tick()
+                self.time_since_tick = time.time()
 
     def process(self, timestamp, msg, callback):
         print "Received message", msg
         contents = json.loads(msg)
         dist = self.player_cloud.values()[0]
-        dist.tick()
         dist.update(contents["args"])
         print "Centroid", dist.centroid()
 
