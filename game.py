@@ -11,9 +11,9 @@ import random
 
 class GameState(object):
     def __init__(self, width, height,
-                 origin=(37.484724,-122.148309),
-                 y_dir=(37.484911,-122.147929),
-                 x_dir=(37.484315,-122.147958)):
+                 origin=(37.483347,-122.149692),
+                 y_dir=(37.483656,-122.149366),
+                 x_dir=(37.483147,-122.149349)):
         self.player_cloud = {}
         self.player_angles = {}
         self.player_connections = {}
@@ -59,7 +59,7 @@ class GameState(object):
         x, y = particle
         ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
-        sigma = 0.1 # TODO: better parameter that reflects actual GPS accuracy
+        sigma = 0.3 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
         return probability
 
