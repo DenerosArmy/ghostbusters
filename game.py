@@ -26,7 +26,8 @@ class GameState(object):
         self.geo_to_simp = inverse(self.simp_to_geo)
 
         self.receiving = False
-        self.queue = Queue()
+        self.compass_queue = Queue()
+        self.snap_queue = Queue()
 
         self.thread = Thread(target=self.run_thread)
         self.thread.daemon = True # thread dies with the program
@@ -101,11 +102,18 @@ class GameState(object):
 
     def push(self, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
-        self.queue.put((timestamp, msg, callback))
+        contents = json.loads(msg)
+        if contents["action"] == "snap":
+            self.snap_queue.put((timestamp, msg, callback))
+        else:
+            self.compass_queue.put((timestamp, msg, callback))
 
     def run_thread(self):
         while True:
-            timestamp, msg, callback = self.queue.get()
+            if not snap_queue.empty():
+                timestamp, msg, callback = self.snap_queue.get()
+            else:
+                timestamp, msg, callback = self.compass_queue.get()
             if time.time() - timestamp > 1.0:
                 continue # Ignore out-of-date data
             self.process(timestamp, msg, callback)
