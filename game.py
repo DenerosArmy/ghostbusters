@@ -1,4 +1,3 @@
-from math import *
 from threading import Thread
 from Queue import Queue, Empty
 import time
@@ -21,7 +20,7 @@ class GameState(object):
 
     def add_player(self, name):
         self.players.append(name)
-        self.probability_cloud[name] = ProbabilityCloud()
+        self.probability_cloud[name] = Distribution()
 
     def push(self, timestamp, msg, callback):
         self.queue.put((timestamp, msg, callback))
