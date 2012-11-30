@@ -228,6 +228,7 @@ class GameState(object):
         player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
         player_data[3] = self.angle_to_simp(player_data[3])
         dist = self.player_cloud[player]
+        dist.tick()
         dist.update(player_data)
         print "Centroid", dist.centroid()
 
