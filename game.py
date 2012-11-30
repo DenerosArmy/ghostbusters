@@ -103,12 +103,16 @@ class GameState(object):
         ghost_dist = self.ghost_cloud.values()[0]
         player_dist = self.player_cloud[player]
         upsampling_factor = 2
+        distance_limit = 0.5
         angles = []
         for ghost_loc in ghost_dist.particles:
             for _ in range(upsampling_factor):
                 player_loc = player_dist.sample()
                 dx = ghost_loc[0] - player_loc[0]
                 dy = ghost_loc[1] - player_loc[1]
+                if dx**2 + dy**2 > distance_limit**2:
+                    angles.append(None)
+                    continue
                 angle = math.degrees(math.atan2(dy, dx))
                 if angle < 0.0:
                     angle += 360.0
@@ -117,8 +121,11 @@ class GameState(object):
 
     def player_ghost_angles_geo(self, player):
         angles = map(self.angle_to_geo, self.player_ghost_angles(player))
-        res = [0, 0, 0, 0]
+        res = [0, 0, 0, 0, 0]
         for angle in angles:
+            if angle is None:
+                res[4] += 1
+                continue
             assert angle >= 0, "Internal error: negative angles"
             if angle < 90:
                 res[0] += 1
@@ -141,9 +148,13 @@ class GameState(object):
         return pt
 
     def angle_to_simp(self, angle):
+        if angle is None:
+            return None
         return (angle - self.geo_to_simp_angle) % 360
 
     def angle_to_geo(self, angle):
+        if angle is None:
+            return None
         return (angle + self.geo_to_simp_angle) % 360
 
     def add_player(self, name):
