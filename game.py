@@ -21,7 +21,7 @@ class GameState(object):
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
 
         #rotate a geo angle CW this many degrees to get simple
-        self.geo_to_simp_angle = degrees(atan((y_dir[1]-origin[1])/(y_dir[0]-origin[0])))
+        self.geo_to_simp_angle = degrees(math.atan2((y_dir[1]-origin[1]),(y_dir[0]-origin[0])))
         self.simp_to_geo = transform_mtx(width, height, origin, x_dir, y_dir)
         self.geo_to_simp = inverse(self.simp_to_geo)
 
