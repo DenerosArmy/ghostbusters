@@ -121,6 +121,6 @@ class GameState(object):
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo()
         else:
-            args = content["args"][0], content["args"][1]
+            args = contents["args"][0], contents["args"][1]
         res = {"action": contents["action"], "args": args}
         callback(json.dumps(res))
