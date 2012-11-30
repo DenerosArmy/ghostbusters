@@ -24,9 +24,18 @@ def test():
 
 def test_coord():
     state = GameState(1,1)
-    pt = [0.5, 0.5]
+    pt = [1, 0]
     state.pt_to_geo(pt)
-    print pt
-    pt = [37.48459, -122.147926]
-    state.pt_to_simp(pt)
-    print pt
+    print "x limit ", pt
+    pt = [0, 1]
+    state.pt_to_geo(pt)
+    print "y limit ", pt
+
+test_coord()
+
+def test_angle():
+    state = GameState(1,1)
+    print "Convert 45 to simple ", state.angle_to_simp(45)
+    print "Convert 45 to geo ", state.angle_to_geo(45)
+
+test_angle()
