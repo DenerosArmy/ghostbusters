@@ -56,6 +56,7 @@ class GameState(object):
             return gx, gy
 
     def refine_measurement(self, location, data):
+        ghost_dist = self.ghost_cloud.values()[0]
         gx, gy = ghost_dist.sample()
         px, py = data[0:2]
 
