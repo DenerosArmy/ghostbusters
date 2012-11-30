@@ -65,7 +65,7 @@ def main():
 
 
     application = tornado.web.Application([
-        (r"/chat", DataHandler),
+        (r"/data", DataHandler),
     ],
     )
 
