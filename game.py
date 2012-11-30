@@ -21,7 +21,7 @@ class GameState(object):
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
 
         #rotate a geo angle CW this many degrees to get simple
-        self.geo_to_simp_angle = degrees(atan((y_dir[1]-origin[1])/(y_dir[0]-origin[0])))
+        self.geo_to_simp_angle = degrees(math.atan2((y_dir[1]-origin[1]),(y_dir[0]-origin[0])))
         self.simp_to_geo = transform_mtx(width, height, origin, x_dir, y_dir)
         self.geo_to_simp = inverse(self.simp_to_geo)
 
@@ -35,7 +35,7 @@ class GameState(object):
 
     def player_observation(self, particle, data):
         x, y = particle
-        ax, ay = data[0], data[1]
+        ax, ay = self.pt_to_simp([data[0], data[1]])
         distance_squared = (x-ax)**2 + (y-ay)**2
         sigma = 0.9 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
@@ -58,7 +58,7 @@ class GameState(object):
             for _ in range(upsampling_factor):
                 player_loc = player_dist.sample()
                 dx = ghost_loc[0] - player_loc[0]
-                dy = ghost_loc[0] - player_loc[0]
+                dy = ghost_loc[1] - player_loc[1]
                 angle = math.degrees(math.atan2(dy, dx))
                 if angle < 0.0:
                     angle += 360.0
@@ -129,6 +129,6 @@ class GameState(object):
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo()
         else:
-            args = content["args"][0], content["args"][1]
+            args = contents["args"][0], contents["args"][1]
         res = {"action": contents["action"], "args": args}
         callback(json.dumps(res))
