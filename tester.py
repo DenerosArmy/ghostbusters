@@ -33,6 +33,9 @@ def test():
 
 def test_coord():
     state = GameState(1,1)
+    pt = [0, 0]
+    state.pt_to_geo(pt)
+    print "origin ", pt
     pt = [1, 0]
     state.pt_to_geo(pt)
     print "x limit ", pt
