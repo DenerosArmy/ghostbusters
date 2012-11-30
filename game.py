@@ -197,9 +197,8 @@ class GameState(object):
                     self.time_since_tick = time.time()
 
     def plot_particles(self, title="Untitled"):
-        while len(self.player_cloud) < 2:
-            pass
         ghost_dist = self.ghost_cloud.values()[0]
+        colors = {0: 'bo', 1: 'go'}
         try:
             print "plotting"
             import matplotlib
@@ -209,14 +208,11 @@ class GameState(object):
             plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
             plt.show()
             while True:
-                player0_dist = self.player_cloud.values()[0]
-                player1_dist = self.player_cloud.values()[1]
                 plt.clf()
                 time.sleep(1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
-                plt.plot([p[0] for p in player0_dist.particles], [p[1] for p in player0_dist.particles], 'bo')
-                plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
-
+                for name, dist in self.player_cloud.items():
+                    plt.plot([p[0] for p in dist.particles], [p[1] for p in dist.particles], colors[name])
                 plt.axis([0, 1, 0, 1])
                 print "new plot generated"
                 plt.savefig("figure_.png")
