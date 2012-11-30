@@ -67,7 +67,7 @@ class GameState(object):
         x, y = None, None
         angle = self.player_angles[name]
         speed = self.player_speeds[name]
-        travel_distance = speed * 4 # TODO: better parameter that reflects reality and time
+        travel_distance = speed * 8 # TODO: better parameter that reflects reality and time
         random_distance = 0.02
         while not distribution.is_valid_location((x, y)):
             distance = random.uniform(0.0, travel_distance)
@@ -197,7 +197,7 @@ class GameState(object):
                     self.time_since_tick = time.time()
 
     def plot_particles(self, title="Untitled"):
-        while len(self.player_cloud) < 1:
+        while len(self.player_cloud) < 2:
             pass
         ghost_dist = self.ghost_cloud.values()[0]
         try:
@@ -210,12 +210,12 @@ class GameState(object):
             plt.show()
             while True:
                 player0_dist = self.player_cloud.values()[0]
-                #player1_dist = self.player_cloud.values()[1]
+                player1_dist = self.player_cloud.values()[1]
                 plt.clf()
                 time.sleep(1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
                 plt.plot([p[0] for p in player0_dist.particles], [p[1] for p in player0_dist.particles], 'bo')
-                #plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
+                plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
 
                 plt.axis([0, 1, 0, 1])
                 print "new plot generated"
