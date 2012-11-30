@@ -9,11 +9,11 @@ def connect():
     ws = create_connection("ws://0.0.0.0:9000/data")
 
 def compass(x=37.484724, y=-122.148309, acc=0.0, heading=0.0):
-    data = {"action": "compass", "args": [x, y, acc, heading]}
+    data = {"action": "compass", "args": str([x, y, acc, heading])}
     ws.send(json.dumps(data))
 
 def ghost(x=37.484724, y=-122.148309, acc=0.0, heading=0.0):
-    data = {"action": "ghost", "args": [x, y, acc, heading]}
+    data = {"action": "ghost", "args": str([x, y, acc, heading])}
     ws.send(json.dumps(data))
 
 def test():
