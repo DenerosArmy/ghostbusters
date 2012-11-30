@@ -136,12 +136,7 @@ class GameState(object):
         player_data = contents["args"][:]
         player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
         dist = self.player_cloud.values()[0]
-<<<<<<< HEAD
-        dist.update(contents["args"])
-=======
-        dist.tick()
         dist.update(player_data)
->>>>>>> 6daafea4c37e204c2f91087609b366e0ee8ebf32
         print "Centroid", dist.centroid()
 
         if contents["action"] == "compass":
