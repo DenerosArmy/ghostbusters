@@ -93,9 +93,9 @@ class GameState(object):
             return 1.0 - float(total)/samples
 
 
-    def player_ghost_angles(self):
+    def player_ghost_angles(self, player):
         ghost_dist = self.ghost_cloud.values()[0]
-        player_dist = self.player_cloud.values()[0]
+        player_dist = self.player_cloud[player]
         upsampling_factor = 2
         angles = []
         for ghost_loc in ghost_dist.particles:
@@ -109,8 +109,8 @@ class GameState(object):
                 angles.append(angle)
         return angles
 
-    def player_ghost_angles_geo(self):
-        angles = map(self.angle_to_geo, self.player_ghost_angles())
+    def player_ghost_angles_geo(self, player):
+        angles = map(self.angle_to_geo, self.player_ghost_angles(player))
         res = [0, 0, 0, 0]
         for angle in angles:
             assert angle >= 0, "Internal error: negative angles"
@@ -211,16 +211,16 @@ class GameState(object):
         print "Centroid", dist.centroid()
 
         if contents["action"] == "compass":
-            args = self.player_ghost_angles_geo()
+            args = self.player_ghost_angles_geo(player)
         else:
             ghost_dist = self.ghost_cloud.values()[0]
             print "Ghost centroid before", ghost_dist.centroid()
-            print "Ghost angles before:", self.player_ghost_angles_geo()
+            print "Ghost angles before:", self.player_ghost_angles_geo(player)
             ghost_location = self.measure_ghost(player_data)
             data = dist, player_data, ghost_location
             ghost_dist.update(data)
             print "Ghost centroid after", ghost_dist.centroid()
-            print "Ghost angles after:", self.player_ghost_angles_geo()
+            print "Ghost angles after:", self.player_ghost_angles_geo(player)
             if ghost_location is not None:
                 args = self.pt_to_geo(list(ghost_location))
             else:
