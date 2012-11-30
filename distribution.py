@@ -1,5 +1,5 @@
-import random
 import logging
+import random
 
 def is_valid_location(loc):
     x, y = loc
