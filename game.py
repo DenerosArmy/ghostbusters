@@ -23,6 +23,12 @@ class GameState(object):
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
 
+    def to_geo(self, pt):
+        apply_transform_to_point(self.simp_to_geo, pt)
+
+    def to_simp(self, pt):
+        apply_transform_to_point(self.geo_to_simp, pt)
+
     def add_player(self, name):
         self.players.append(name)
         self.probability_cloud[name] = distribution.Distribution()
