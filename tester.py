@@ -36,5 +36,9 @@ def test_angle():
     state = GameState(1,1)
     print "Convert 45 to simple ", state.angle_to_simp(45)
     print "Convert 45 to geo ", state.angle_to_geo(45)
+    print "Convert 90 to simple ", state.angle_to_simp(90)
+    print "Convert 90 to geo ", state.angle_to_geo(90)
+    print "Convert 270 to simple ", state.angle_to_simp(270)
+    print "Convert 270 to geo ", state.angle_to_geo(270)
 
 test_angle()
