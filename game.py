@@ -59,7 +59,7 @@ class GameState(object):
         x, y = particle
         ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
-        sigma = 0.1 # TODO: better parameter that reflects actual GPS accuracy
+        sigma = 0.2 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
         return probability
 
@@ -67,6 +67,8 @@ class GameState(object):
         x, y = None, None
         angle = self.player_angles[name]
         speed = self.player_speeds[name]
+        if speed > 0:
+            speed = 0.02
         travel_distance = speed * 8 # TODO: better parameter that reflects reality and time
         random_distance = 0.02
         while not distribution.is_valid_location((x, y)):
@@ -161,7 +163,7 @@ class GameState(object):
         return (angle - self.geo_to_simp_angle) % 360
 
     def add_player(self, name, connection):
-        self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
+        self.player_cloud[name] = distribution.Distribution(num_particles=200, emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
         self.player_angles[name] = 0.0
         self.player_connections[name] = connection
         self.player_speeds[name] = 0.0
