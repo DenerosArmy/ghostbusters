@@ -25,8 +25,8 @@ def test():
 def test_coord():
     state = GameState(1,1)
     pt = [0.5, 0.5]
-    state.to_geo(pt)
+    state.pt_to_geo(pt)
     print pt
     pt = [37.48459, -122.147926]
-    state.to_simp(pt)
+    state.pt_to_simp(pt)
     print pt

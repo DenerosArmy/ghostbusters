@@ -15,7 +15,6 @@ class GameState(object):
         self.add_player("Player1")
         self.ghost_cloud = {}
         self.ghost_cloud["Ghost1"] = distribution.Distribution()
-        self.ghost_cloud["Ghost1"].initialize_randomly()
         self.receiving = False
         self.simp_to_geo = transform_mtx(width, height, origin, x_dir, y_dir)
         self.geo_to_simp = inverse(self.simp_to_geo)
@@ -24,15 +23,21 @@ class GameState(object):
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
 
-    def to_geo(self, pt):
+    def pt_to_geo(self, pt):
         apply_transform_to_point(self.simp_to_geo, pt)
 
-    def to_simp(self, pt):
+    def pt_to_simp(self, pt):
         apply_transform_to_point(self.geo_to_simp, pt)
+
+    def angle_to_geo(self, angle):
+        return 0.0
+
+    def angle_to_simp(self, angle):
+        return 0.0
 
     def add_player(self, name):
         self.players.append(name)
-        self.probability_cloud[name] = distribution.Distribution()
+        self.player_cloud[name] = distribution.Distribution()
 
     def push(self, timestamp, msg, callback):
         #self.process(timestamp, msg, callback)
