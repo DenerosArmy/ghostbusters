@@ -58,6 +58,20 @@ class DataHandler0(DataHandler):
 class DataHandler1(DataHandler):
     player_num = 1
 
+class StatusDataHandler(tornado.websocket.WebSocketHandler):
+    def open(self):
+        print "Moving into endgame: opening status"
+
+    def on_message(self, msg):
+        game_state.push_status(msg, self.send)
+
+    def send(self, msg):
+        if self in connections:
+            self.write_message(msg)
+
+    def on_close(self):
+        connections.remove(self)
+
 def main():
     global logger
     global game_state 
@@ -74,6 +88,7 @@ def main():
     application = tornado.web.Application([
         (r"/data0", DataHandler0),
         (r"/data1", DataHandler1),
+        (r"/status", StatusDataHandler),
     ],
     )
 

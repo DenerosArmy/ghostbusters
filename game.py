@@ -55,11 +55,27 @@ class GameState(object):
         else:
             return gx, gy
 
+    def refine_measurement(self, location, data):
+        gx, gy = ghost_dist.sample()
+        px, py = data[0:2]
+
+        dx = gx - px
+        dy = gy - py
+
+        length = math.sqrt(dx**2 + dy**2)
+        scaling_factor = 1.0/length
+
+        x = px + dx*scaling_factor
+        y = py + dy*scaling_factor
+
+        return self.pt_to_geo([x, y])
+
+
     def player_observation(self, particle, data):
         x, y = particle
         ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
-        sigma = 0.3 # TODO: better parameter that reflects actual GPS accuracy
+        sigma = 0.2 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
         return probability
 
@@ -67,6 +83,8 @@ class GameState(object):
         x, y = None, None
         angle = self.player_angles[name]
         speed = self.player_speeds[name]
+        if speed > 0:
+            speed = 0.02
         travel_distance = speed * 8 # TODO: better parameter that reflects reality and time
         random_distance = 0.02
         while not distribution.is_valid_location((x, y)):
@@ -161,7 +179,7 @@ class GameState(object):
         return (angle - self.geo_to_simp_angle) % 360
 
     def add_player(self, name, connection):
-        self.player_cloud[name] = distribution.Distribution(emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
+        self.player_cloud[name] = distribution.Distribution(num_particles=200, emission_function=self.player_observation, transition_function=lambda x: self.player_transition(name, x))
         self.player_angles[name] = 0.0
         self.player_connections[name] = connection
         self.player_speeds[name] = 0.0
@@ -173,6 +191,16 @@ class GameState(object):
             self.snap_queue.put((player, timestamp, msg, callback))
         else:
             self.compass_queue.put((player, timestamp, msg, callback))
+
+    def push_status(self, msg, callback):
+        print "Received status message", msg
+        contents = json.loads(msg)
+        if contents["action"] == "kill":
+            res = {"action": "status", "args" : ["win"]}
+            callback(json.dumps(res))
+            print "========== GAME OVER =========="
+            import sys
+            sys.exit(0)
 
     def run_thread(self):
         self.time_since_tick = time.time()
@@ -247,7 +275,7 @@ class GameState(object):
             print "Ghost centroid after", ghost_dist.centroid()
             print "Ghost angles after:", self.player_ghost_angles_geo(player)
             if ghost_location is not None:
-                args = self.pt_to_geo(list(ghost_location))
+                args = self.refine_measurement(ghost_location, player_data)
                 for player_num, conn in self.player_connections.items():
                     if player_num != player:
                         conn.send(json.dumps({"action": "notify", "args": args}))
