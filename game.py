@@ -32,6 +32,7 @@ class GameState(object):
         self.thread = Thread(target=self.run_thread)
         self.thread.daemon = True # thread dies with the program
         self.thread.start()
+        self.time_since_tick = time.time()
 
     def measure_ghost(self, data):
         angle_limit = 45.0
@@ -62,8 +63,8 @@ class GameState(object):
         x, y = None, None
         travel_distance = 0.05 # TODO: better parameter that reflects reality and time
         while not distribution.is_valid_location((x, y)):
-            x = particle[0] + (random.random() - 0.5) * travel_distance * 2.0
-            y = particle[1] + (random.random() - 0.5) * travel_distance * 2.0
+            x = particle[0] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
+            y = particle[1] + random.uniform(-0.5, 0.5) * travel_distance * 2.0
         return x, y
 
     def ghost_observation(self, particle, data):
@@ -151,14 +152,23 @@ class GameState(object):
             self.compass_queue.put((timestamp, msg, callback))
 
     def run_thread(self):
+        self.time_since_tick = time.time()
         while True:
             if not self.snap_queue.empty():
                 timestamp, msg, callback = self.snap_queue.get()
-            else:
+                if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                    self.process(timestamp, msg, callback)
+            elif not self.compass_queue.empty():
                 timestamp, msg, callback = self.compass_queue.get()
-            if time.time() - timestamp > 1.0:
-                continue # Ignore out-of-date data
-            self.process(timestamp, msg, callback)
+                if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                    self.process(timestamp, msg, callback)
+            else:
+                if time.time() - self.time_since_tick > 1.0:
+                    # Tick the distribution every second
+                    print "tick"
+                    dist = self.player_cloud.values()[0]
+                    dist.tick()
+                    self.time_since_tick = time.time()
 
     def process(self, timestamp, msg, callback):
         print "Received message", msg
@@ -168,7 +178,6 @@ class GameState(object):
         player_data[0], player_data[1] = self.pt_to_simp(player_data[0:2])
         player_data[3] = self.angle_to_simp(player_data[3])
         dist = self.player_cloud.values()[0]
-        dist.tick()
         dist.update(player_data)
         print "Centroid", dist.centroid()
 
