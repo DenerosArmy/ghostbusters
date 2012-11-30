@@ -24,7 +24,6 @@ def test():
 
 def test_coord():
     state = GameState(1,1)
-    print "origin ", state.origin
     pt = [1, 0]
     state.pt_to_geo(pt)
     print "x limit ", pt
@@ -36,7 +35,7 @@ test_coord()
 
 def test_angle():
     state = GameState(1,1)
-    print "Convert 45 to geo ", state.angle_to_geo(45)
     print "Convert 45 to simple ", state.angle_to_simp(45)
+    print "Convert 45 to geo ", state.angle_to_geo(45)
 
 test_angle()
