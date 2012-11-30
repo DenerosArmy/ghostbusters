@@ -59,7 +59,7 @@ class GameState(object):
         x, y = particle
         ax, ay = data[0:2]
         distance_squared = (x-ax)**2 + (y-ay)**2
-        sigma = 0.7 # TODO: better parameter that reflects actual GPS accuracy
+        sigma = 0.1 # TODO: better parameter that reflects actual GPS accuracy
         probability = 1.0 / (sigma * math.sqrt(2 * math.pi)) * math.exp(-0.5 * distance_squared / sigma**2) # normal distribution
         return probability
 
@@ -184,6 +184,7 @@ class GameState(object):
             elif not self.compass_queue.empty():
                 player, timestamp, msg, callback = self.compass_queue.get()
                 if time.time() - timestamp < 1.0: # Ignore out-of-date data
+                    print "processing compass ", msg
                     self.process(player, timestamp, msg, callback)
             else:
                 if time.time() - self.time_since_tick > 1.0:
@@ -198,8 +199,6 @@ class GameState(object):
     def plot_particles(self, title="Untitled"):
         while len(self.player_cloud) < 1:
             pass
-        player0_dist = self.player_cloud.values()[0]
-        #player1_dist = self.player_cloud.values()[1]
         ghost_dist = self.ghost_cloud.values()[0]
         try:
             print "plotting"
@@ -210,6 +209,8 @@ class GameState(object):
             plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
             plt.show()
             while True:
+                player0_dist = self.player_cloud.values()[0]
+                #player1_dist = self.player_cloud.values()[1]
                 plt.clf()
                 time.sleep(1)
                 plt.plot([p[0] for p in ghost_dist.particles], [p[1] for p in ghost_dist.particles], 'ro')
@@ -217,6 +218,7 @@ class GameState(object):
                 #plt.plot([p[0] for p in player1_dist.particles], [p[1] for p in player1_dist.particles], 'go')
 
                 plt.axis([0, 1, 0, 1])
+                print "new plot generated"
                 plt.savefig("figure_.png")
                 shutil.move("figure_.png", "figure.png")
         except ImportError:
@@ -235,8 +237,8 @@ class GameState(object):
         print "Centroid", dist.centroid()
 
         self.player_angles[player] = player_data[3]
-        if len(player_data) > 4:
-            self.player_speeds[player] = player_data[4]
+        self.player_speeds[player] = player_data[4]
+        print self.player_speeds
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo(player)
         else:
