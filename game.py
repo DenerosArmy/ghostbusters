@@ -11,9 +11,9 @@ import random
 
 class GameState(object):
     def __init__(self, width, height,
-                 origin=(37.483347,-122.149692),
-                 y_dir=(37.483656,-122.149366),
-                 x_dir=(37.483147,-122.149349)):
+                 origin=(37.484101,-122.149242),
+                 y_dir=(37.484577,-122.148812),
+                 x_dir=(37.483828,-122.148796)):
         self.player_cloud = {}
         self.player_angles = {}
         self.player_connections = {}
