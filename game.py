@@ -232,7 +232,7 @@ class GameState(object):
         print "Centroid", dist.centroid()
 
         self.player_angles[player] = player_data[3]
-        if len(player_data > 4):
+        if len(player_data) > 4:
             self.player_speeds[player] = player_data[4]
         if contents["action"] == "compass":
             args = self.player_ghost_angles_geo(player)
