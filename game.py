@@ -192,6 +192,16 @@ class GameState(object):
         else:
             self.compass_queue.put((player, timestamp, msg, callback))
 
+    def push_status(self, msg, callback):
+        print "Received status message", msg
+        contents = json.loads(msg)
+        if contents["action"] == "kill":
+            res = {"action": "status", "args" : ["win"]}
+            callback(json.dumps(res))
+            print "========== GAME OVER =========="
+            import sys
+            sys.exit(0)
+
     def run_thread(self):
         self.time_since_tick = time.time()
         while True:
