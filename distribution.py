@@ -20,7 +20,7 @@ class Distribution(object):
         self.initialization_function = initialization_function
         self.transition_function = transition_function
         self.emission_function = emission_function
-        self.initialization_function()
+        self.initialize_randomly()
 
     def resample(self, particles, weights, num_particles=None):
         if num_particles is None:
