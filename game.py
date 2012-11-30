@@ -176,7 +176,7 @@ class GameState(object):
         while len(self.player_cloud) < 2:
             pass
         player0_dist = self.player_cloud.values()[0]
-        player1_dist = self.player_cloud.values()[0]
+        player1_dist = self.player_cloud.values()[1]
         ghost_dist = self.ghost_cloud.values()[0]
         try:
             print "plotting"
