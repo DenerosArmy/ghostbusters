@@ -38,13 +38,12 @@ connections = set()
 class DataHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print "Adding player ", self.player_num
-        self.player = self.player_num
         connections.add(self)
-        game_state.add_player(self.player)
+        game_state.add_player(self.player_num, self)
         return None
 
     def on_message(self, msg):
-        game_state.push(self.player, time.time(), msg, self.send)
+        game_state.push(self.player_num, time.time(), msg, self.send)
     
     def send(self,msg):
         if self in connections:
@@ -52,7 +51,6 @@ class DataHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         connections.remove(self)
-        del game_state.player_cloud[self.player]
 
 class DataHandler0(DataHandler):
     player_num = 0
