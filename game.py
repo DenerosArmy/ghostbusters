@@ -197,6 +197,6 @@ class GameState(object):
             if ghost_location is not None:
                 args = self.pt_to_geo(list(ghost_location))
             else:
-                args = None
+                args = [0.0, 0.0]
         res = {"action": contents["action"], "args": args}
         callback(json.dumps(res))
